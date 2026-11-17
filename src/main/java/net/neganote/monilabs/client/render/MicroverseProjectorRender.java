@@ -10,8 +10,6 @@ import net.irisshaders.iris.Iris;
 import net.irisshaders.iris.shaderpack.materialmap.WorldRenderingSettings;
 import net.irisshaders.iris.uniforms.CapturedRenderingState;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.blockentity.TheEndPortalRenderer;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.block.Blocks;
@@ -74,7 +72,7 @@ public class MicroverseProjectorRender extends
 
         int tier = projector.getProjectorTier();
         Microverse microverse = projector.getMicroverse();
-        // RGB. Left - right further away from player - closer
+        // RGB. Left -> right: further away from player -> closer
         Vector4i colors = switch (microverse) {
             case NONE -> new Vector4i(0, 0, 0, 0);
             case NORMAL -> new Vector4i(0xBDB3FF, 0x196E5B, 0x6B41E8, 0x20A37C);
@@ -92,22 +90,16 @@ public class MicroverseProjectorRender extends
             case HOSTILE -> new Vector4f(3.0f, 0.5f, 1.5f, 1.0f);
             case SHATTERED -> new Vector4f(0.5f, 0.5f, 0.5f, 0.5f);
             case CORRUPTED -> getCorruptedSpeeds(new Vector4f(2.0f, 0.5f, 1.0f, 4.0f), partialTicks);
-            case ABYSSAL -> getAbyssalSpeeds((float) projector.getMicroverseAge() / 4000F);
+            case ABYSSAL -> new Vector4f(1.5f, 0.25f, 0.75f, 0.5f);
             case NECROSED -> new Vector4f(0.02f, 0.02f, 0.02f, 0.02f);
-            case SUPERCHARGED -> getSuperchargedSpeeds(
-                    (float) projector.getMicroverseAge() / 2000F);
+            case SUPERCHARGED -> getSuperchargedSpeeds(1);
             case DEGENERATE -> getCorruptedSpeeds(new Vector4f(4f, 5f, 3f, 4f), partialTicks);
         };
         int baseColor = switch (microverse) {
-            case CORRUPTED, DEGENERATE -> 0x150A14;
-            case SUPERCHARGED -> 0x190E06;
+            case CORRUPTED /* DEGENERATE */ -> 0x150A14;
             default -> 0x06191C;
         };
         renderMicroverse(stack, buffer, upwards, front, left, combinedLight, tier, baseColor, colors, particleSpeeds);
-    }
-
-    private Vector4f getAbyssalSpeeds(float multiplier) {
-        return new Vector4f(1.5f * multiplier, 0.25f * multiplier, 0.75f * multiplier, 0.5f * multiplier);
     }
 
     private Vector4f getSuperchargedSpeeds(float multiplier) {
@@ -251,7 +243,7 @@ public class MicroverseProjectorRender extends
         // Send buffer data, clean up
         VertexConsumer consumer;
         if (GTCEu.isModLoaded(GTValues.MODID_OCULUS) && Iris.getCurrentPack().isPresent()) {
-            consumer = buffer.getBuffer(RenderType.entitySolid(TheEndPortalRenderer.END_PORTAL_LOCATION));
+            consumer = buffer.getBuffer(MoniRenderTypes.END_PORTAL_COLORED_IRIS);
         } else {
             consumer = buffer.getBuffer(MoniRenderTypes.END_PORTAL_COLORED);
         }

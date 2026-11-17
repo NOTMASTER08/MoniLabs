@@ -62,6 +62,7 @@ public class MoniLangHandler {
         provider.add("gtceu.chromatic_processing", "Chromatic Processing");
         provider.add("gtceu.chromatic_transcendence", "Chromatic Transcendence");
         provider.add("gtceu.microverse", "Microverse Mission");
+        provider.add("gtceu.lapotronic", "Lapotronic Generation");
         provider.add("gtceu.creative_data_multi", "Omniscience Research Beacon");
         provider.add("gtceu.creative_energy_multi", "Transdimensional Energy Singularity");
 
@@ -70,6 +71,8 @@ public class MoniLangHandler {
         provider.add("monilabs.tooltip.prismatic_core", "The heart of the Prismatic Crucible!");
 
         provider.add("monilabs.tooltip.prismatic.rainbow", "the rainbow");
+
+        provider.add("info.monilabs.lapotronic_generator.no_redstone_available", "Insufficient Liquid Redstone");
 
         multiLang(provider, "monilabs.tooltip.prismatic",
                 "§7Uses the power of %s to transform items!",
@@ -119,6 +122,16 @@ public class MoniLangHandler {
                 "§7Recipe outputs are affected by the §flocal quantum fluctuation§7, with each value giving its own rates.",
                 "§7Quantum Fluctuations randomly evolve over time.",
                 "§7Optimal recipe fluctuations §fwill vary§7 depending on the §frecipe§7, its §fquantum rule§7 and the §fworld seed§7.");
+        provider.add("tooltip.monilabs.large_lapotronic_generator.flavor", "Crystal Structure Exploitation Engine");
+        provider.add("tooltip.monilabs.extreme_lapotronic_generator.flavor",
+                "Ordered Molecular Array Potential Extractor");
+
+        provider.add("tooltip.monilabs.lapotronic_generator.redstone_usage",
+                "§fUses 1200mb/hr§7 of §6Liquid Redstone §7while working§r");
+        provider.add("tooltip.monilabs.large_lapotronic_generator.primal_mana_usage",
+                "§fSupply 24 mB/min §7of §6Primal Mana §7to produce up to §f6144 EU/t §7at §f2x §7fuel consumption§r");
+        provider.add("tooltip.monilabs.extreme_lapotronic_generator.primal_mana_usage",
+                "§fSupply 60 mB/min §7of §6Primal Mana §7to produce up to §f32768 EU/t §7at §f2x §7fuel consumption§r");
 
         provider.add("monilabs.failure_reason.improper_xp", "XP buffer is outside necessary range");
         provider.add("monilabs.failure_reason.insufficient_projector_tier", "Insufficient Projector Tier");
@@ -131,7 +144,7 @@ public class MoniLangHandler {
 
         provider.add("monilabs.tooltip.quantum_fluctuations.space_gradient", "Quantum Fluctuations");
 
-        provider.add("emi_info.monilabs.projector_info", "Projector tier: %d");
+        provider.add("emi_info.monilabs.projector_info", "Projector tier: %d (%s)");
         provider.add("emi_info.monilabs.required_microverse", "Required type: %s");
         provider.add("emi_info.monilabs.new_microverse", "New type: %s");
         provider.add("emi_info.monilabs.integrity_drained", "Integrity drained: %.2f");
@@ -231,6 +244,11 @@ public class MoniLangHandler {
         provider.add("microverse.monilabs.type.necrosed", "Necrosed");
         provider.add("microverse.monilabs.type.supercharged", "Supercharged");
         provider.add("microverse.monilabs.type.degenerate", "Degenerate");
+
+        provider.add("projector.monilabs.tier.1", "Basic");
+        provider.add("projector.monilabs.tier.2", "Advanced");
+        provider.add("projector.monilabs.tier.3", "Elite");
+        provider.add("projector.monilabs.tier.4", "Hyperbolic");
 
         provider.add("microverse.monilabs.current_microverse", "Microverse type: %s");
         provider.add("microverse.monilabs.integrity", "Microverse integrity: %.2f%%");

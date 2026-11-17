@@ -2,12 +2,11 @@ package net.neganote.monilabs.common.machine;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.data.RotationState;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.MachineDefinition;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
+import com.gregtechceu.gtceu.api.machine.*;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.property.GTMachineModelProperties;
@@ -15,6 +14,7 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 import com.gregtechceu.gtceu.api.registry.registrate.MachineBuilder;
 import com.gregtechceu.gtceu.client.util.TooltipHelper;
@@ -44,6 +44,7 @@ import net.neganote.monilabs.gtbridge.MoniRecipeTypes;
 import net.neganote.monilabs.recipe.MoniRecipeModifiers;
 
 import appeng.core.definitions.AEBlocks;
+import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -55,7 +56,7 @@ import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.capability.recipe.IO.IN;
 import static com.gregtechceu.gtceu.api.capability.recipe.IO.OUT;
 import static com.gregtechceu.gtceu.api.machine.property.GTMachineModelProperties.IS_FORMED;
-import static com.gregtechceu.gtceu.common.data.machines.GTMachineUtils.registerTieredMachines;
+import static com.gregtechceu.gtceu.common.data.machines.GTMachineUtils.*;
 import static com.gregtechceu.gtceu.common.data.models.GTMachineModels.createWorkableTieredHullMachineModel;
 import static net.neganote.monilabs.MoniLabs.REGISTRATE;
 
@@ -200,9 +201,7 @@ public class MoniMachines {
                     .modelProperty(GTMachineModelProperties.RECIPE_LOGIC_STATUS, RecipeLogic.Status.IDLE)
                     .model(createWorkableTieredHullMachineModel(
                             MoniLabs.id("block/machines/parallel_hatch_mk" + (tier - 4)))
-                            .andThen((ctx, prov, model) -> {
-                                model.addReplaceableTextures("bottom", "top", "side");
-                            }))
+                            .andThen((ctx, prov, model) -> model.addReplaceableTextures("bottom", "top", "side")))
                     .tooltips(Component.translatable("gtceu.machine.parallel_hatch_mk" + tier + ".tooltip"),
                             Component.translatable("gtceu.part_sharing.disabled"))
                     .register(),
@@ -416,8 +415,8 @@ public class MoniMachines {
                                     .or(Predicates.abilities(PartAbility.IMPORT_FLUIDS).setPreviewCount(1))
                                     .or(Predicates.abilities(PartAbility.EXPORT_FLUIDS).setPreviewCount(1))
                                     .or(Predicates.abilities(PartAbility.MAINTENANCE).setExactLimit(1))
-                                    .or(Predicates.machines(CHROMA_SENSOR_HATCH))
-                                    .or(Predicates.machines(ADVANCED_CHROMA_SENSOR_HATCH)))
+                                    .or(Predicates.machines(CHROMA_SENSOR_HATCH, ADVANCED_CHROMA_SENSOR_HATCH)
+                                            .setPreviewCount(1)))
                     .where("l", Predicates.blocks(MoniBlocks.DIMENSIONAL_STABILIZATION_NETHERITE_CASING.get()))
                     .where("C", Predicates.blocks(MoniBlocks.CHROMODYNAMIC_CONDUCTION_CASING.get()))
                     .where("M", Predicates.controller(Predicates.blocks(definition.getBlock())))
@@ -438,7 +437,8 @@ public class MoniMachines {
     public static MultiblockMachineDefinition BASIC_MICROVERSE_PROJECTOR = REGISTRATE
             .multiblock("basic_microverse_projector", (holder) -> new MicroverseProjectorMachine(holder, 1))
             .langValue("Basic Microverse Projector")
-            .rotationState(RotationState.NON_Y_AXIS)
+            .rotationState(RotationState.ALL)
+            .allowExtendedFacing(true)
             .recipeTypes(MoniRecipeTypes.MICROVERSE_RECIPES)
             .recipeModifiers(MoniRecipeModifiers.MICROVERSE_OC)
             .appearanceBlock(MoniBlocks.MICROVERSE_CASING)
@@ -450,10 +450,10 @@ public class MoniMachines {
                     .where("D", Predicates.any())
                     .where("C", Predicates.blocks(MoniBlocks.MICROVERSE_CASING.get()).setMinGlobalLimited(10)
                             .or(Predicates.autoAbilities(definition.getRecipeTypes()))
-                            .or(Predicates.machines(MICROVERSE_STABILITY_SENSOR_HATCH).setPreviewCount(1))
-                            .or(Predicates.machines(ADVANCED_MICROVERSE_STABILITY_SENSOR_HATCH))
-                            .or(Predicates.machines(MICROVERSE_TYPE_SENSOR_HATCH).setPreviewCount(1))
-                            .or(Predicates.machines(ADVANCED_MICROVERSE_TYPE_SENSOR_HATCH)))
+                            .or(Predicates.machines(MICROVERSE_STABILITY_SENSOR_HATCH,
+                                    ADVANCED_MICROVERSE_STABILITY_SENSOR_HATCH).setPreviewCount(1))
+                            .or(Predicates.machines(MICROVERSE_TYPE_SENSOR_HATCH, ADVANCED_MICROVERSE_TYPE_SENSOR_HATCH)
+                                    .setPreviewCount(1)))
                     .where("G", Predicates.blocks(GTBlocks.CASING_TEMPERED_GLASS.get())
                             .or(Predicates.blocks(GTBlocks.CASING_LAMINATED_GLASS.get()))
                             .or(Predicates.blocks(GTBlocks.FUSION_GLASS.get()))
@@ -473,7 +473,8 @@ public class MoniMachines {
     public static MultiblockMachineDefinition ADVANCED_MICROVERSE_PROJECTOR = REGISTRATE
             .multiblock("advanced_microverse_projector", (holder) -> new MicroverseProjectorMachine(holder, 2))
             .langValue("Advanced Microverse Projector")
-            .rotationState(RotationState.NON_Y_AXIS)
+            .rotationState(RotationState.ALL)
+            .allowExtendedFacing(true)
             .recipeTypes(MoniRecipeTypes.MICROVERSE_RECIPES)
             .recipeModifiers(MoniRecipeModifiers.MICROVERSE_OC)
             .appearanceBlock(MoniBlocks.MICROVERSE_CASING)
@@ -487,10 +488,10 @@ public class MoniMachines {
                     .where("D", Predicates.any())
                     .where("C", Predicates.blocks(MoniBlocks.MICROVERSE_CASING.get()).setMinGlobalLimited(38)
                             .or(Predicates.autoAbilities(definition.getRecipeTypes()))
-                            .or(Predicates.machines(MICROVERSE_STABILITY_SENSOR_HATCH).setPreviewCount(1))
-                            .or(Predicates.machines(ADVANCED_MICROVERSE_STABILITY_SENSOR_HATCH))
-                            .or(Predicates.machines(MICROVERSE_TYPE_SENSOR_HATCH).setPreviewCount(1))
-                            .or(Predicates.machines(ADVANCED_MICROVERSE_TYPE_SENSOR_HATCH)))
+                            .or(Predicates.machines(MICROVERSE_STABILITY_SENSOR_HATCH,
+                                    ADVANCED_MICROVERSE_STABILITY_SENSOR_HATCH).setPreviewCount(1))
+                            .or(Predicates.machines(MICROVERSE_TYPE_SENSOR_HATCH, ADVANCED_MICROVERSE_TYPE_SENSOR_HATCH)
+                                    .setPreviewCount(1)))
                     .where("G", Predicates.blocks(GTBlocks.CASING_TEMPERED_GLASS.get())
                             .or(Predicates.blocks(GTBlocks.CASING_LAMINATED_GLASS.get()))
                             .or(Predicates.blocks(GTBlocks.FUSION_GLASS.get()))
@@ -511,7 +512,8 @@ public class MoniMachines {
     public static MultiblockMachineDefinition ELITE_MICROVERSE_PROJECTOR = REGISTRATE
             .multiblock("elite_microverse_projector", (holder) -> new MicroverseProjectorMachine(holder, 3))
             .langValue("Elite Microverse Projector")
-            .rotationState(RotationState.NON_Y_AXIS)
+            .rotationState(RotationState.ALL)
+            .allowExtendedFacing(true)
             .recipeTypes(MoniRecipeTypes.MICROVERSE_RECIPES)
             .recipeModifiers(MoniRecipeModifiers.MICROVERSE_OC)
             .appearanceBlock(MoniBlocks.MICROVERSE_CASING)
@@ -538,10 +540,10 @@ public class MoniMachines {
                     .where("D", Predicates.any())
                     .where("C", Predicates.blocks(MoniBlocks.MICROVERSE_CASING.get()).setMinGlobalLimited(125)
                             .or(Predicates.autoAbilities(definition.getRecipeTypes()))
-                            .or(Predicates.machines(MICROVERSE_STABILITY_SENSOR_HATCH).setPreviewCount(1))
-                            .or(Predicates.machines(ADVANCED_MICROVERSE_STABILITY_SENSOR_HATCH))
-                            .or(Predicates.machines(MICROVERSE_TYPE_SENSOR_HATCH).setPreviewCount(1))
-                            .or(Predicates.machines(ADVANCED_MICROVERSE_TYPE_SENSOR_HATCH)))
+                            .or(Predicates.machines(MICROVERSE_STABILITY_SENSOR_HATCH,
+                                    ADVANCED_MICROVERSE_STABILITY_SENSOR_HATCH).setPreviewCount(1))
+                            .or(Predicates.machines(MICROVERSE_TYPE_SENSOR_HATCH, ADVANCED_MICROVERSE_TYPE_SENSOR_HATCH)
+                                    .setPreviewCount(1)))
                     .where("G", Predicates.blocks(GTBlocks.CASING_TEMPERED_GLASS.get())
                             .or(Predicates.blocks(GTBlocks.CASING_LAMINATED_GLASS.get()))
                             .or(Predicates.blocks(GTBlocks.FUSION_GLASS.get()))
@@ -562,7 +564,8 @@ public class MoniMachines {
     public static MultiblockMachineDefinition HYPERBOLIC_MICROVERSE_PROJECTOR = REGISTRATE
             .multiblock("hyperbolic_microverse_projector", (holder) -> new MicroverseProjectorMachine(holder, 4))
             .langValue("Hyperbolic Microverse Projector")
-            .rotationState(RotationState.NON_Y_AXIS)
+            .rotationState(RotationState.ALL)
+            .allowExtendedFacing(true)
             .recipeTypes(MoniRecipeTypes.MICROVERSE_RECIPES)
             .recipeModifiers(MoniRecipeModifiers.MICROVERSE_PARALLEL_HATCH, MoniRecipeModifiers.MICROVERSE_OC)
             .appearanceBlock(MoniBlocks.MICROVERSE_CASING)
@@ -594,10 +597,10 @@ public class MoniMachines {
                     .where("C", Predicates.blocks(MoniBlocks.MICROVERSE_CASING.get()).setMinGlobalLimited(195)
                             .or(Predicates.autoAbilities(definition.getRecipeTypes()))
                             .or(Predicates.abilities(PartAbility.PARALLEL_HATCH).setMaxGlobalLimited(1))
-                            .or(Predicates.machines(MICROVERSE_STABILITY_SENSOR_HATCH).setPreviewCount(1))
-                            .or(Predicates.machines(ADVANCED_MICROVERSE_STABILITY_SENSOR_HATCH))
-                            .or(Predicates.machines(MICROVERSE_TYPE_SENSOR_HATCH).setPreviewCount(1))
-                            .or(Predicates.machines(ADVANCED_MICROVERSE_TYPE_SENSOR_HATCH)))
+                            .or(Predicates.machines(MICROVERSE_STABILITY_SENSOR_HATCH,
+                                    ADVANCED_MICROVERSE_STABILITY_SENSOR_HATCH).setPreviewCount(1))
+                            .or(Predicates.machines(MICROVERSE_TYPE_SENSOR_HATCH, ADVANCED_MICROVERSE_TYPE_SENSOR_HATCH)
+                                    .setPreviewCount(1)))
                     .where("G", Predicates.blocks(GTBlocks.FUSION_GLASS.get())
                             .or(Predicates.blocks(MoniBlocks.PRISM_GLASS.get())))
                     .where("N", Predicates.frames(MoniMaterials.SculkBioalloy))
@@ -623,44 +626,57 @@ public class MoniMachines {
             .rotationState(RotationState.NON_Y_AXIS)
             .recipeTypes(MoniRecipeTypes.CREATIVE_ENERGY_MULTI_RECIPES)
             .noRecipeModifier()
-            .appearanceBlock(MoniBlocks.DIMENSIONAL_STABILIZATION_NETHERITE_CASING)
+            .appearanceBlock(GCYMBlocks.CASING_ATOMIC)
             .pattern(definition -> FactoryBlockPattern.start()
                     // spotless:off
-                    .aisle("###############", "###############", "###############", "###############", "###############", "###############", "###############", "###############", "###############", "###############", "###############", "#######H#######", "#######H#######", "#######H#######", "#######H#######", "#######H#######", "#######H#######", "#######H#######", "###############")
-                    .aisle("#####NNNNN#####", "#####NNNNN#####", "#######F#######", "#######F#######", "#######F#######", "###############", "###############", "###############", "###############", "#######H#######", "#######H#######", "#######H#######", "#####AAHAA#####", "#######H#######", "#####AAHAA#####", "#######H#######", "#######H#######", "#######H#######", "#######R#######")
-                    .aisle("###NNNNNNNNN###", "###NNNNNNNNN###", "######AAA######", "######AAA######", "######AAA######", "#######F#######", "#######F#######", "###############", "#######H#######", "#######H#######", "#######H#######", "###############", "####A##P##A####", "###############", "####A##P##A####", "###############", "###############", "###############", "###############")
-                    .aisle("##NNNNNNNNNNN##", "##NNNNNENNNNN##", "#######F#######", "#######F#######", "######AAA######", "######AAA######", "######AAA######", "#####CCCCC#####", "#######H#######", "#####CCCCC#####", "###############", "###############", "###A#######A###", "###############", "###A#######A###", "###############", "###############", "###############", "###############")
-                    .aisle("##NNNNNNNNNNN##", "##NNNNAEANNNN##", "###############", "###############", "###############", "###############", "###############", "####CC###CC####", "#######H#######", "####CC###CC####", "###############", "###############", "##A#########A##", "###############", "##A#########A##", "###############", "###############", "###############", "###############")
-                    .aisle("#NNNNNNNNNNNNN#", "#NNNNAAEAANNNN#", "#####VAEAV#####", "#####V###V#####", "###############", "###############", "###############", "###CC#####CC###", "###############", "###CC#####CC###", "###############", "###############", "#A###########A#", "###############", "#A###########A#", "###############", "###############", "###############", "###############")
-                    .aisle("#NNNNNNNNNNNNN#", "#NNNAAAAAAANNN#", "##A##AAEAA##A##", "##A###AEA###A##", "##AA##VEV##AA##", "###A##V#V##A###", "###A#######A###", "###C#######C###", "###############", "###C#######C###", "###############", "###############", "#A###########A#", "###############", "#A###########A#", "###############", "###############", "###############", "###############")
-                    .aisle("#NNNNNNNNNNNNN#", "#NNEEEAAAEEENN#", "#FAF#EEAEE#FAF#", "#FAF##EAE##FAF#", "#FAA##EEE##AAF#", "##FA###E###AF##", "##FA###E###AF##", "###C###E###C###", "##HHH##P##HHH##", "#HHC#######CHH#", "#HH#########HH#", "HH###########HH", "HHP#########PHH", "HH###########HH", "HHP#########PHH", "HH###########HH", "HH###########HH", "HH###########HH", "#R###########R#")
-                    .aisle("#NNNNNNNNNNNNN#", "#NNNAAAAAAANNN#", "##A##AAEAA##A##", "##A###AEA###A##", "##AA##VEV##AA##", "###A##V#V##A###", "###A#######A###", "###C#######C###", "###############", "###C#######C###", "###############", "###############", "#A###########A#", "###############", "#A###########A#", "###############", "###############", "###############", "###############")
-                    .aisle("#NNNNNNNNNNNNN#", "#NNNNAAEAANNNN#", "#####VAEAV#####", "#####V###V#####", "###############", "###############", "###############", "###CC#####CC###", "###############", "###CC#####CC###", "###############", "###############", "#A###########A#", "###############", "#A###########A#", "###############", "###############", "###############", "###############")
-                    .aisle("##NNNNNNNNNNN##", "##NNNNAEANNNN##", "###############", "###############", "###############", "###############", "###############", "####CC###CC####", "#######H#######", "####CC###CC####", "###############", "###############", "##A#########A##", "###############", "##A#########A##", "###############", "###############", "###############", "###############")
-                    .aisle("##NNNNNNNNNNN##", "##NNNNNENNNNN##", "#######F#######", "#######F#######", "######AAA######", "######AAA######", "######AAA######", "#####CCCCC#####", "#######H#######", "#####CCCCC#####", "###############", "###############", "###A#######A###", "###############", "###A#######A###", "###############", "###############", "###############", "###############")
-                    .aisle("###NNNNNNNNN###", "###NNNNNNNNN###", "######AAA######", "######AAA######", "######AAA######", "#######F#######", "#######F#######", "###############", "#######H#######", "#######H#######", "#######H#######", "###############", "####A##P##A####", "###############", "####A##P##A####", "###############", "###############", "###############", "###############")
-                    .aisle("#####NN@NN#####", "#####NNNNN#####", "#######F#######", "#######F#######", "#######F#######", "###############", "###############", "###############", "###############", "#######H#######", "#######H#######", "#######H#######", "#####AAHAA#####", "#######H#######", "#####AAHAA#####", "#######H#######", "#######H#######", "#######H#######", "#######R#######")
-                    .aisle("###############", "###############", "###############", "###############", "###############", "###############", "###############", "###############", "###############", "###############", "###############", "#######H#######", "#######H#######", "#######H#######", "#######H#######", "#######H#######", "#######H#######", "#######H#######", "###############")
+                    .aisle("aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaaaaabbbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaaaaabbbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabbbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaaaabbbbbaaaaaaaaaaaaa", "aaaaaaaaaaaaaabbbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabbbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaaaabbbbbaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaaabbbbbbbaaaaaaaaaaaa", "aaaaaaaaaaaaaabbbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaaabbbbbbbaaaaaaaaaaaa", "aaaaaaaaaaaaadaaadaaaaaaaaaaaaa", "aaaaaaaaaaaaadaaadaaaaaaaaaaaaa", "aaaaaaaaaaaaadaaadaaaaaaaaaaaaa", "aaaaaaaaaaaaaadbdaaaaaaaaaaaaaa", "aaaaaaaaaaaaaadbdaaaaaaaaaaaaaa", "aaaaaaaaaaaaaadbdaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaabeeeeeeebaaaaaaaaaaa", "aaaaaaaaaaaaeeeeeeeaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaafbfaaaaaaaaaaaaaa", "aaaaaaaaaaaaaafbfaaaaaaaaaaaaaa", "aaaaaaaaaaaaaafbfaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaeeeeeeeeeeeaaaaaaaaaa", "aaaaaaaaaaeeeeeeeeeeeaaaaaaaaaa", "aaaaaaaaaaeeaaaaaaaeeaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaafafaaaaaaaaaaaaaa", "aaaaaaaaaaaacccccccaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaacccccccaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaageeeeeeeeeeegaaaaaaaaa", "aaaaaaaaaggeeeeeeeeeggaaaaaaaaa", "aaaaaaaaaggeaaaaaaaeggaaaaaaaaa", "aaaaaaaaaggeaaaaaaaeggaaaaaaaaa", "aaaaaaaaadgeaaaaaaaegdaaaaaaaaa", "aaaaaaaaaagaaaaaaaaagaaaaaaaaaa", "aaaaaaaaaadaaaaaaaaadaaaaaaaaaa", "aaaaaaaaaadaaaaaaaaadaaaaaaaaaa", "aaaaaaaaaaadaaaaaaadaaaaaaaaaaa", "aaaaaaaaaaadaaaaaaadaaaaaaaaaaa", "aaaaaaaaaaaccaaaaaccaaaaaaaaaaa", "aaaaaaaaaaahaaaaaaahaaaaaaaaaaa", "aaaaaaaaaaahaaaaaaahaaaaaaaaaaa", "aaaaaaaaaahaaaaaaaaahaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaahaaaaaaaaahaaaaaaaaaa", "aaaaaaaaaaahaaaaaaahaaaaaaaaaaa", "aaaaaaaaaaahaaaaaaahaaaaaaaaaaa", "aaaaaaaaaaaccaabaaccaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaeeeeeeeeeeeeeeeaaaaaaaa", "aaaaaaaaegieeeeeeeeeegeaaaaaaaa", "aaaaaaaaegidaaaaaaadigeaaaaaaaa", "aaaaaaaaagidaaaaaaadigaaaaaaaaa", "aaaaaaaaagidaaaaaaadigaaaaaaaaa", "aaaaaaaaagiaaaaaaaaaigaaaaaaaaa", "aaaaaaaaadiaaaaaaaaaidaaaaaaaaa", "aaaaaaaaadiaaaaaaaaaidaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaicaaaaaaaciaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaahihaaaaaaahihaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaahihaaaaaaahihaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaicaaaaaaaciaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaajaaaaaaaaajaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaabeeeeeeeeeeeeeeebaaaaaaa", "aaaaaaaaeeeeeeeeeeeeeeeaaaaaaaa", "aaaaaaaaeedaaaaaaaaadeeaaaaaaaa", "aaaaaaaaaedaaaaaaaaadeaaaaaaaaa", "aaaaaaaaaedaaaaaaaaadeaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaadaaaaaaaaaaadaaaaaaaaa", "aaaaaaaaadaaaaaaaaaaadaaaaaaaaa", "aaaaaaaaaccaaaaaaaaaccaaaaaaaaa", "aaaaaaaaahaaaaaaaaaaahaaaaaaaaa", "aaaaaaaaahaaaaaaaaaaahaaaaaaaaa", "aaaaaaaaaahaaaaaaaaahaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaahaaaaaaaaahaaaaaaaaaa", "aaaaaaaaahaaaaaaaaaaahaaaaaaaaa", "aaaaaaaaahaaaaaaaaaaahaaaaaaaaa", "aaaaaaaaaccaaaaaaaaaccaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaabbeeeeeeeeeeeeeeeeebbaaaaa", "aaaaaaaeeeeeeeeeeeeeeeeeaaaaaaa", "aaaaaaaaaaaaaeeeeeaaaaaaaaaaaaa", "aaaaaaaaaaaaaleeelaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaccaaaaaaaaaaaccaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaccaaaaaaaaaaaccaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaabbbbeeeeeeeeeeeeeeeeebbbbaaa", "aaaaaadeeeeeeeeeeeeeeeeedaaaaaa", "aaaaaadaaaaaeeegeeeaaaaadaaaaaa", "aaaaaadaaaaaleegeelaaaaadaaaaaa", "aaaaaaaaaaaaalelelaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaacaaaaaaaaaaaaacaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaacaaaaaaaaaaaaacaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("abbbbbbeeeeeeeeeeeeeeeeebbbbbba", "aabbbbaeeeeeeeeeeeeeeeeeabbbbaa", "aaabbaaaaaaaeeegeeeaaaaaaabbaaa", "aaaabaaaaaaaeeegeeeaaaaaaabaaaa", "aaaaabdaaaaaaeegeeaaaaaadbaaaaa", "aaaaabdaaaaaaaegeaaaaaaadbaaaaa", "aaaaabdaaaaaaalalaaaaaaadbaaaaa", "aaaaaabaaaaaaalalaaaaaaabaaaaaa", "aaaaaabfaaaaaaaaaaaaaaafbaaaaaa", "aaaaaabffaaaaaaaaaaaaaffbaaaaaa", "aaaaaabfcaaaaaaaaaaaaacfbaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabcaaaaaaaaaaaaacbaaaaaaa", "aaaaaaaabaaaaaaaaaaaaabaaaaaaaa", "aaaaaaaabaaaaaaaaaaaaabaaaaaaaa", "aaaaaaaabaaaaaaaaaaaaabaaaaaaaa", "aaaaaaaabaaaaaaaaaaaaabaaaaaaaa", "aaaaaaaabaaaaaaaaaaaaabaaaaaaaa", "aaaaaaaaabaaaaaaaaaaabaaaaaaaaa", "aaaaaaaaabaaaaaaaaaaabaaaaaaaaa", "aaaaaaaaabaaaaaaaaaaabaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("bbbbbbbeeeeeeeeeeeeeeeeebbbbbbb", "abbbcbaeeeeeeeeeeeeeeeeeabcbbba", "aabbcbaaaaaaegggggeaaaaaabcbbaa", "aaabcbaaaaaaegggggeaaaaaabcbaaa", "aaaabcbaaaaaalggglaaaaaabcbaaaa", "aaaabcbaaaaaaagggaaaaaaabcbaaaa", "aaaabcbaaaaaaaagaaaaaaaabcbaaaa", "aaaaabcbaaaaaaagaaaaaaabcbaaaaa", "aaaaabcbaaaaaaagaaaaaaabcbaaaaa", "aaaaabcbaaaaaaaaaaaaaaabcbaaaaa", "aaaaabcbcaaaaaaaaaaaaacbcbaaaaa", "aaaaaabcbaaaaaaaaaaaaabcbaaaaaa", "aaaaaabcbaaaaaaaaaaaaabcbaaaaaa", "aaaaaabcbaaaaaaaaaaaaabcbaaaaaa", "aaaaaabcbaaaaaaaaaaaaabcbaaaaaa", "aaaaaabcbaaaaaaaaaaaaabcbaaaaaa", "aaaaaabcbaaaaaaaaaaaaabcbaaaaaa", "aaaaaabcbaaaaaaaaaaaaabcbaaaaaa", "aaaaaabcbaaaaaaaaaaaaabcbaaaaaa", "aaaaaabcbaaaaaaaaaaaaabcbaaaaaa", "aaaaaabccbaaaaaaaaaaabccbaaaaaa", "aaaaaaabcbaaaaaaaaaaabcbaaaaaaa", "aaaaaaabcbaaaaaaaaaaabcbaaaaaaa", "aaaaaaabcbaaaaaaaaaaabcbaaaaaaa", "aaaaaaabcbaaaaaaaaaaabcbaaaaaaa", "aaaaaaabcbaaaaaaaaaaabcbaaaaaaa", "aaaaaaaabcbaaaaaaaaabcbaaaaaaaa", "aaaaaaaabcbaaaaaaaaabcbaaaaaaaa", "aaaaaaaabcbaaaaaaaaabcbaaaaaaaa", "aaaaaaaaabbaaaaaaaaabbaaaaaaaaa", "aaaaaaaaabbaaaaaaaaabbaaaaaaaaa", "aaaaaaaaabbaaaaaaaaabbaaaaaaaaa", "aaaaaaaaabbaaaaaaaaabbaaaaaaaaa", "aaaaaaaaaabaaaaaaaaabaaaaaaaaaa", "aaaaaaaaaabaaaaaaaaabaaaaaaaaaa", "aaaaaaaaaabaaaaaaaaabaaaaaaaaaa", "aaaaaaaaaabaaaaaaaaabaaaaaaaaaa")
+                    .aisle("abbbbbbeeeeeeeeeeeeeeeeebbbbbba", "aabbbbaeeeeeeeeeeeeeeeeeabbbbaa", "aaabbaaaaaaaeeegeeeaaaaaaabbaaa", "aaaabaaaaaaaeeegeeeaaaaaaabaaaa", "aaaaabdaaaaaaeegeeaaaaaadbaaaaa", "aaaaabdaaaaaaaegeaaaaaaadbaaaaa", "aaaaabdaaaaaaalalaaaaaaadbaaaaa", "aaaaaabaaaaaaalalaaaaaaabaaaaaa", "aaaaaabfaaaaaaaaaaaaaaafbaaaaaa", "aaaaaabffaaaaaaaaaaaaaffbaaaaaa", "aaaaaabfcaaaaaaaaaaaaacfbaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabaaaaaaaaaaaaaaabaaaaaaa", "aaaaaaabcaaaaaaaaaaaaacbaaaaaaa", "aaaaaaaabaaaaaaaaaaaaabaaaaaaaa", "aaaaaaaabaaaaaaaaaaaaabaaaaaaaa", "aaaaaaaabaaaaaaaaaaaaabaaaaaaaa", "aaaaaaaabaaaaaaaaaaaaabaaaaaaaa", "aaaaaaaabaaaaaaaaaaaaabaaaaaaaa", "aaaaaaaaabaaaaaaaaaaabaaaaaaaaa", "aaaaaaaaabaaaaaaaaaaabaaaaaaaaa", "aaaaaaaaabaaaaaaaaaaabaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaabbbbeeeeeeeeeeeeeeeeebbbbaaa", "aaaaaadeeeeeeeeeeeeeeeeedaaaaaa", "aaaaaadaaaaaeeegeeeaaaaadaaaaaa", "aaaaaadaaaaaleegeelaaaaadaaaaaa", "aaaaaaaaaaaaalelelaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaacaaaaaaaaaaaaacaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaacaaaaaaaaaaaaacaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaabbeeeeeeeeeeeeeeeeebbaaaaa", "aaaaaaaeeeeeeeeeeeeeeeeeaaaaaaa", "aaaaaaaaaaaaaeekeeaaaaaaaaaaaaa", "aaaaaaaaaaaaaleeelaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaccaaaaaaaaaaaccaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaccaaaaaaaaaaaccaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaabeeeeeeeeeeeeeeebaaaaaaa", "aaaaaaaaeeeeeeeeeeeeeeeaaaaaaaa", "aaaaaaaaeedaaaaaaaaadeeaaaaaaaa", "aaaaaaaaaedaaaaaaaaadeaaaaaaaaa", "aaaaaaaaaedaaaaaaaaadeaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaadaaaaaaaaaaadaaaaaaaaa", "aaaaaaaaadaaaaaaaaaaadaaaaaaaaa", "aaaaaaaaaccaaaaaaaaaccaaaaaaaaa", "aaaaaaaaahaaaaaaaaaaahaaaaaaaaa", "aaaaaaaaahaaaaaaaaaaahaaaaaaaaa", "aaaaaaaaaahaaaaaaaaahaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaahaaaaaaaaahaaaaaaaaaa", "aaaaaaaaahaaaaaaaaaaahaaaaaaaaa", "aaaaaaaaahaaaaaaaaaaahaaaaaaaaa", "aaaaaaaaaccaaaaaaaaaccaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaeeeeeeeeeeeeeeeaaaaaaaa", "aaaaaaaaegieeeeeeeeeegeaaaaaaaa", "aaaaaaaaegidaaaaaaadigeaaaaaaaa", "aaaaaaaaagidaaaaaaadigaaaaaaaaa", "aaaaaaaaagidaaaaaaadigaaaaaaaaa", "aaaaaaaaagiaaaaaaaaaigaaaaaaaaa", "aaaaaaaaadiaaaaaaaaaidaaaaaaaaa", "aaaaaaaaadiaaaaaaaaaidaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaicaaaaaaaciaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaahihaaaaaaahihaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaahihaaaaaaahihaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaicaaaaaaaciaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaaiaaaaaaaaaiaaaaaaaaaa", "aaaaaaaaaajaaaaaaaaajaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaageeeeeeeeeeegaaaaaaaaa", "aaaaaaaaaggeeeeeeeeeggaaaaaaaaa", "aaaaaaaaaggeaaaaaaaeggaaaaaaaaa", "aaaaaaaaaggeaaaaaaaeggaaaaaaaaa", "aaaaaaaaadgeaaaaaaaegdaaaaaaaaa", "aaaaaaaaaagaaaaaaaaagaaaaaaaaaa", "aaaaaaaaaadaaaaaaaaadaaaaaaaaaa", "aaaaaaaaaadaaaaaaaaadaaaaaaaaaa", "aaaaaaaaaaadaaaaaaadaaaaaaaaaaa", "aaaaaaaaaaadaaaaaaadaaaaaaaaaaa", "aaaaaaaaaaaccaaaaaccaaaaaaaaaaa", "aaaaaaaaaaahaaaaaaahaaaaaaaaaaa", "aaaaaaaaaaahaaaaaaahaaaaaaaaaaa", "aaaaaaaaaahaaaaaaaaahaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaahaaaaaaaaahaaaaaaaaaa", "aaaaaaaaaaahaaaaaaahaaaaaaaaaaa", "aaaaaaaaaaahaaaaaaahaaaaaaaaaaa", "aaaaaaaaaaaccaabaaccaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaeeeeeeeeeeeaaaaaaaaaa", "aaaaaaaaaaeeeeeeeeeeeaaaaaaaaaa", "aaaaaaaaaaeeaaaaaaaeeaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaafafaaaaaaaaaaaaaa", "aaaaaaaaaaaacccccccaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaacccccccaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaabeeeeeeebaaaaaaaaaaa", "aaaaaaaaaaaaeeeeeeeaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaafbfaaaaaaaaaaaaaa", "aaaaaaaaaaaaaafbfaaaaaaaaaaaaaa", "aaaaaaaaaaaaaafbfaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaaabbbbbbbaaaaaaaaaaaa", "aaaaaaaaaaaaadaaadaaaaaaaaaaaaa", "aaaaaaaaaaaaadaaadaaaaaaaaaaaaa", "aaaaaaaaaaaaadaaadaaaaaaaaaaaaa", "aaaaaaaaaaaaaadbdaaaaaaaaaaaaaa", "aaaaaaaaaaaaaadbdaaaaaaaaaaaaaa", "aaaaaaaaaaaaaadbdaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaaabbbbbbbaaaaaaaaaaaa", "aaaaaaaaaaaaaabbbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaaaabbbbbaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabcbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaaaabbbbbaaaaaaaaaaaaa", "aaaaaaaaaaaaaabbbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabbbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaaaaabbbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaabbbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaaaaabbbaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    .aisle("aaaaaaaaaaaaaaabaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
                     // spotless:on
-                    .where("N",
-                            Predicates.blocks(MoniBlocks.DIMENSIONAL_STABILIZATION_NETHERITE_CASING.get())
-                                    .setMinGlobalLimited(226)
-                                    .or(Predicates.abilities(PartAbility.IMPORT_FLUIDS).setPreviewCount(1))
-                                    .or(Predicates.abilities(PartAbility.MAINTENANCE).setExactLimit(1)))
-                    .where("E",
-                            Predicates.blocks(MoniBlocks.ELTZ_CASING.get()))
-                    .where("A", Predicates.blocks(GCYMBlocks.CASING_ATOMIC.get()))
-                    .where("F", Predicates.frames(MoniMaterials.Eltz))
-                    .where("V", Predicates.blocks(GCYMBlocks.HEAT_VENT.get()))
-                    .where("P", Predicates.blocks(GTBlocks.CASING_POLYTETRAFLUOROETHYLENE_PIPE.get()))
-                    .where("C", Predicates.blocks(GTBlocks.SUPERCONDUCTING_COIL.get()))
-                    .where("H", Predicates.blocks(GTBlocks.HIGH_POWER_CASING.get()))
-                    .where("R", Predicates.blocks(GTBlocks.MACHINE_CASING_UEV.get()))
-                    .where("@", Predicates.controller(Predicates.blocks(definition.get())))
-                    .where("#", Predicates.any())
+                    .where("a", Predicates.any())
+                    .where("b", Predicates.blocks(MoniBlocks.DIMENSIONAL_STABILIZATION_NETHERITE_CASING.get()))
+                    .where("c", Predicates.blocks(GTBlocks.SUPERCONDUCTING_COIL.get()))
+                    .where("d", Predicates.frames(MoniMaterials.Eltz))
+                    .where("e", Predicates.blocks(GCYMBlocks.CASING_ATOMIC.get()).setMinGlobalLimited(577)
+                            .or(Predicates.autoAbilities(MoniRecipeTypes.CREATIVE_ENERGY_MULTI_RECIPES)))
+                    .where("f", Predicates.frames(GTMaterials.NaquadahAlloy))
+                    .where("g", Predicates.blocks(MoniBlocks.ELTZ_CASING.get()))
+                    .where("h", Predicates.frames(MoniMaterials.CrystalMatrix))
+                    .where("i", Predicates.blocks(GTBlocks.HIGH_POWER_CASING.get()))
+                    .where("j", Predicates.blocks(GTBlocks.MACHINE_CASING_UEV.get()))
+                    .where("k", Predicates.controller(Predicates.blocks(definition.get())))
+                    .where("l", Predicates.blocks(GCYMBlocks.HEAT_VENT.get()))
                     .build())
             .modelProperty(RecipeLogic.STATUS_PROPERTY, RecipeLogic.Status.IDLE)
-            .model(GTMachineModels.createWorkableCasingMachineModel(MoniLabs.id("block/casing/netherite"),
+            .model(GTMachineModels.createWorkableCasingMachineModel(GTCEu.id("block/casings/gcym/atomic_casing"),
                     GTCEu.id("block/multiblock/processing_array"))
                     .andThen(b -> b.addDynamicRenderer(
                             MoniDynamicRenderHelper::createCreativeEnergyRender)))
@@ -706,8 +722,7 @@ public class MoniMachines {
                     .where("b", Predicates.blocks(MoniBlocks.BIOALLOY_CASING.get()))
                     .where("B",
                             Predicates.blocks(MoniBlocks.BIOALLOY_CASING.get()).setMinGlobalLimited(240)
-                                    .or(Predicates.abilities(PartAbility.IMPORT_FLUIDS).setMinGlobalLimited(1))
-                                    .or(Predicates.abilities(PartAbility.MAINTENANCE).setExactLimit(1)))
+                                    .or(Predicates.abilities(PartAbility.IMPORT_FLUIDS).setMinGlobalLimited(1)))
                     .where("E", Predicates.abilities(PartAbility.INPUT_ENERGY))
                     .build())
             .modelProperty(RecipeLogic.STATUS_PROPERTY, RecipeLogic.Status.IDLE)
@@ -737,8 +752,8 @@ public class MoniMachines {
                             .or(Predicates.abilities(PartAbility.MAINTENANCE).setExactLimit(1))
                             .or(Predicates.abilities(PartAbility.INPUT_ENERGY).setMaxGlobalLimited(2))
                             .or(Predicates.machines(MoniMachines.SCULK_XP_DRAINING_HATCH).setMaxGlobalLimited(1))
-                            .or(Predicates.machines(MoniMachines.SCULK_XP_SENSOR_HATCH).setPreviewCount(1))
-                            .or(Predicates.machines(MoniMachines.ADVANCED_SCULK_XP_SENSOR_HATCH)))
+                            .or(Predicates.machines(MoniMachines.SCULK_XP_SENSOR_HATCH, ADVANCED_SCULK_XP_SENSOR_HATCH)
+                                    .setPreviewCount(1)))
                     .where("c", Predicates.blocks(MoniBlocks.CRYOLOBUS_CASING.get()))
                     .where("L", Predicates.blocks(GTBlocks.CASING_LAMINATED_GLASS.get()))
                     .where("F", Predicates.frames(GTMaterials.BlackSteel))
@@ -796,20 +811,84 @@ public class MoniMachines {
                             MoniLabs.id("block/machines/virtual_particle_synthesizer")))
             .tooltipBuilder(VIRTUAL_PARTICLE_SYNTHESIZER_TOOLTIPS)
             .register();
+    public static MultiblockMachineDefinition LARGE_LAPOTRONIC_GENERATOR = REGISTRATE
+            .multiblock("large_lapotronic_generator",
+                    holder -> new LargeLapotronicGeneratorMachine(holder, GTValues.EV))
+            .recipeTypes(MoniRecipeTypes.LAPOTRONIC_GENERATOR_RECIPES)
+            .recipeModifiers(LargeLapotronicGeneratorMachine::recipeModifier)
+            .rotationState(RotationState.ALL)
+            .generator(true)
+            .appearanceBlock(GTBlocks.CASING_TITANIUM_STABLE)
+            .pattern(definition -> FactoryBlockPattern.start()
+                    .aisle("EBE", "FCF", "EBE")
+                    .aisle("EBE", "EDE", "EBE")
+                    .aisle("EBE", "EDE", "EBE")
+                    .aisle("EBE", "F@F", "EBE")
+                    .where("@", Predicates.controller(Predicates.blocks(definition.get())))
+                    .where("B", Predicates.blocks(GTBlocks.CASING_TITANIUM_STABLE.get())
+                            .or(Predicates.autoAbilities(definition.getRecipeTypes(), false, false, true, true, true,
+                                    true))
+                            .or(Predicates.autoAbilities(true, false, false))
+                            .or(Predicates.abilities(PartAbility.IMPORT_FLUIDS)))
+                    .where("C", Predicates.abilities(PartAbility.OUTPUT_ENERGY))
+                    .where("D", Predicates.blocks(GTBlocks.CASING_TITANIUM_GEARBOX.get()))
+                    .where("E", Predicates.blocks(MoniBlocks.ENERGETIC_TITANIUM_CASING.get()))
+                    .where("F", Predicates.frames(GTMaterials.Titanium))
+                    .build())
+            .workableCasingModel(GTCEu.id("block/casings/solid/machine_casing_stable_titanium"),
+                    MoniLabs.id("block/overlay/machine/lapotronic_multi"))
+            .tooltips(Component.translatable("tooltip.monilabs.large_lapotronic_generator.flavor"),
+                    Component.translatable("gtceu.universal.tooltip.base_production_eut", V[EV]),
+                    Component.translatable("tooltip.monilabs.lapotronic_generator.redstone_usage"),
+                    Component.translatable("tooltip.monilabs.large_lapotronic_generator.primal_mana_usage"))
+            .register();
+
+    public static MultiblockMachineDefinition EXTREME_LAPOTRONIC_GENERATOR = REGISTRATE
+            .multiblock("extreme_lapotronic_generator",
+                    holder -> new LargeLapotronicGeneratorMachine(holder, GTValues.IV))
+            .recipeTypes(MoniRecipeTypes.LAPOTRONIC_GENERATOR_RECIPES)
+            .recipeModifiers(LargeLapotronicGeneratorMachine::recipeModifier)
+            .rotationState(RotationState.ALL)
+            .generator(true)
+            .appearanceBlock(GTBlocks.CASING_TUNGSTENSTEEL_ROBUST)
+            .pattern(definition -> FactoryBlockPattern.start()
+                    .aisle("EBE", "FCF", "EBE")
+                    .aisle("EBE", "EDE", "EBE")
+                    .aisle("EBE", "EDE", "EBE")
+                    .aisle("EBE", "F@F", "EBE")
+                    .where("@", Predicates.controller(Predicates.blocks(definition.get())))
+                    .where("B", Predicates.blocks(GTBlocks.CASING_TUNGSTENSTEEL_ROBUST.get())
+                            .or(Predicates.autoAbilities(definition.getRecipeTypes(), false, false, true, true, true,
+                                    true))
+                            .or(Predicates.autoAbilities(true, false, false))
+                            .or(Predicates.abilities(PartAbility.IMPORT_FLUIDS)))
+                    .where("C", Predicates.abilities(PartAbility.OUTPUT_ENERGY))
+                    .where("D", Predicates.blocks(GTBlocks.CASING_TUNGSTENSTEEL_GEARBOX.get()))
+                    .where("E", Predicates.blocks(MoniBlocks.LAPOTRONIC_TUNGSTENSTEEL_CASING.get()))
+                    .where("F", Predicates.frames(GTMaterials.TungstenSteel))
+                    .build())
+            .workableCasingModel(GTCEu.id("block/casings/solid/machine_casing_robust_tungstensteel"),
+                    MoniLabs.id("block/overlay/machine/lapotronic_multi"))
+            .tooltips(Component.translatable("tooltip.monilabs.extreme_lapotronic_generator.flavor"),
+                    Component.translatable("gtceu.universal.tooltip.base_production_eut", V[IV]),
+                    Component.translatable("tooltip.monilabs.lapotronic_generator.redstone_usage"),
+                    Component.translatable("tooltip.monilabs.extreme_lapotronic_generator.primal_mana_usage"))
+            .register();
 
     // MAX stuff
-    public static MachineDefinition registerMaxLaserHatch(GTRegistrate registrate, IO io, int amperage,
-                                                          PartAbility ability) {
+    public static MachineDefinition registerLaserHatch(GTRegistrate registrate, IO io, int amperage,
+                                                       PartAbility ability, int tier) {
         String name = io == IN ? "target" : "source";
         return registerTieredMachines(registrate, amperage + "a_laser_" + name + "_hatch",
-                (holder, tier) -> new LaserHatchPartMachine(holder, io, tier, amperage), (tier, builder) -> builder
+                (holder, tierInner) -> new LaserHatchPartMachine(holder, io, tierInner, amperage),
+                (tierInner, builder) -> builder
                         .langValue(VNF[tier] + "§r " + FormattingUtil.formatNumbers(amperage) + "§eA§r Laser " +
                                 FormattingUtil.toEnglishName(name) + " Hatch")
                         .rotationState(RotationState.ALL)
                         .tooltips(Component.translatable("gtceu.machine.laser_hatch." + name + ".tooltip"),
                                 Component.translatable("gtceu.machine.laser_hatch.both.tooltip"),
                                 Component.translatable("gtceu.universal.tooltip.voltage_" + (io == IN ? "in" : "out"),
-                                        FormattingUtil.formatNumbers(V[tier]), VNF[tier]),
+                                        FormattingUtil.formatNumbers(V[tierInner]), VNF[tierInner]),
                                 Component.translatable("gtceu.universal.tooltip.amperage_in", amperage),
                                 Component.translatable("gtceu.universal.tooltip.energy_storage_capacity",
                                         FormattingUtil
@@ -820,21 +899,59 @@ public class MoniMachines {
                         .modelProperty(IS_FORMED, false)
                         .overlayTieredHullModel(GTCEu.id("block/machine/part/laser_" + name + "_hatch"))
                         .register(),
-                GTValues.MAX)[0];
+                tier)[0];
     }
 
-    public static final MachineDefinition MAX_LASER_INPUT_HATCH_256 = registerMaxLaserHatch(REGISTRATE, IN,
-            256, PartAbility.INPUT_LASER);
-    public static final MachineDefinition MAX_LASER_OUTPUT_HATCH_256 = registerMaxLaserHatch(REGISTRATE, OUT,
-            256, PartAbility.OUTPUT_LASER);
-    public static final MachineDefinition MAX_LASER_INPUT_HATCH_1024 = registerMaxLaserHatch(REGISTRATE, IN,
-            1024, PartAbility.INPUT_LASER);
-    public static final MachineDefinition MAX_LASER_OUTPUT_HATCH_1024 = registerMaxLaserHatch(REGISTRATE, OUT,
-            1024, PartAbility.OUTPUT_LASER);
-    public static final MachineDefinition MAX_LASER_INPUT_HATCH_4096 = registerMaxLaserHatch(REGISTRATE, IN,
-            4096, PartAbility.INPUT_LASER);
-    public static final MachineDefinition MAX_LASER_OUTPUT_HATCH_4096 = registerMaxLaserHatch(REGISTRATE, OUT,
-            4096, PartAbility.OUTPUT_LASER);
+    public static final MachineDefinition MAX_LASER_INPUT_HATCH_256 = registerLaserHatch(REGISTRATE, IN,
+            256, PartAbility.INPUT_LASER, MAX);
+    public static final MachineDefinition MAX_LASER_OUTPUT_HATCH_256 = registerLaserHatch(REGISTRATE, OUT,
+            256, PartAbility.OUTPUT_LASER, MAX);
+    public static final MachineDefinition MAX_LASER_INPUT_HATCH_1024 = registerLaserHatch(REGISTRATE, IN,
+            1024, PartAbility.INPUT_LASER, MAX);
+    public static final MachineDefinition MAX_LASER_OUTPUT_HATCH_1024 = registerLaserHatch(REGISTRATE, OUT,
+            1024, PartAbility.OUTPUT_LASER, MAX);
+    public static final MachineDefinition MAX_LASER_INPUT_HATCH_4096 = registerLaserHatch(REGISTRATE, IN,
+            4096, PartAbility.INPUT_LASER, MAX);
+    public static final MachineDefinition MAX_LASER_OUTPUT_HATCH_4096 = registerLaserHatch(REGISTRATE, OUT,
+            4096, PartAbility.OUTPUT_LASER, MAX);
+
+    public static final MachineDefinition EV_LASER_INPUT_HATCH_256 = registerLaserHatch(REGISTRATE, IN,
+            256, PartAbility.INPUT_LASER, EV);
+    public static final MachineDefinition EV_LASER_OUTPUT_HATCH_256 = registerLaserHatch(REGISTRATE, OUT,
+            256, PartAbility.OUTPUT_LASER, EV);
+    public static final MachineDefinition EV_LASER_INPUT_HATCH_1024 = registerLaserHatch(REGISTRATE, IN,
+            1024, PartAbility.INPUT_LASER, EV);
+    public static final MachineDefinition EV_LASER_OUTPUT_HATCH_1024 = registerLaserHatch(REGISTRATE, OUT,
+            1024, PartAbility.OUTPUT_LASER, EV);
+    public static final MachineDefinition EV_LASER_INPUT_HATCH_4096 = registerLaserHatch(REGISTRATE, IN,
+            4096, PartAbility.INPUT_LASER, EV);
+    public static final MachineDefinition EV_LASER_OUTPUT_HATCH_4096 = registerLaserHatch(REGISTRATE, OUT,
+            4096, PartAbility.OUTPUT_LASER, EV);
+
+    public static final MachineDefinition[] LAPOTRONIC_GENERATORS = registerSimpleMonilabsGenerator(REGISTRATE,
+            "lapotronic", MoniRecipeTypes.LAPOTRONIC_GENERATOR_RECIPES, i -> i, 1.0f, MV, HV);
+
+    // Copied and modified from GTMachineUtils
+    public static MachineDefinition[] registerSimpleMonilabsGenerator(GTRegistrate registrate, String name,
+                                                                      GTRecipeType recipeType,
+                                                                      Int2IntFunction tankScalingFunction,
+                                                                      float hazardStrengthPerOperation, int... tiers) {
+        return registerTieredMachines(registrate, name,
+                (holder, tier) -> new SimpleGeneratorMachine(holder, tier, hazardStrengthPerOperation * (float) tier,
+                        tankScalingFunction),
+                (tier, builder) -> builder
+                        .langValue("%s %s Generator %s".formatted(GTValues.VLVH[tier],
+                                FormattingUtil.toEnglishName(name), GTValues.VLVT[tier]))
+                        .editableUI(SimpleGeneratorMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id(name),
+                                recipeType))
+                        .rotationState(RotationState.ALL).recipeType(recipeType)
+                        .recipeModifier(MoniRecipeModifiers.SIMPLE_LAPOGEN_OC, true)
+                        .addOutputLimit(ItemRecipeCapability.CAP, 0).addOutputLimit(FluidRecipeCapability.CAP, 0)
+                        .simpleGeneratorModel(MoniLabs.id("block/overlay/machine/" + name))
+                        .tooltips(workableTiered(tier, V[tier], V[tier] * 64L, recipeType, 0, false))
+                        .register(),
+                tiers);
+    }
 
     public static void init() {}
 }

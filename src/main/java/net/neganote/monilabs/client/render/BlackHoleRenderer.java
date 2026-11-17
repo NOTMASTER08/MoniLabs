@@ -12,7 +12,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.neganote.monilabs.MoniLabs;
@@ -43,7 +42,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class BlackHoleRenderer {
 
     public static RenderTarget miscTranslucentTexture = null;
-    private static final int uAABBSize = 14;
+    private static final int uAABBSize = 21;
     private static final List<Vector3f> blackHoles = new ArrayList<>();
     private static final Matrix4f projectionMatrix = new Matrix4f();
     private static final Matrix4f viewMatrix = new Matrix4f();
@@ -265,6 +264,7 @@ public class BlackHoleRenderer {
 
         if (Iris.getCurrentPack().isEmpty()) {
             RenderSystem.enableBlend();
+            RenderSystem.blendFunc(GL31.GL_ONE, GL31.GL_ONE_MINUS_SRC_ALPHA);
             miscTranslucentTexture.blitToScreen(miscTranslucentTexture.width, miscTranslucentTexture.height, false);
             RenderSystem.enableDepthTest();
         }
@@ -303,10 +303,5 @@ public class BlackHoleRenderer {
         poseStack.setIdentity();
         poseStack.mulPoseMatrix(viewMatrix);
         renderCore(poseStack, lastCameraPos, projectionMatrix);
-    }
-
-    @SubscribeEvent
-    public static void onResize(ScreenEvent.Init.Post event) {
-        updateTextures();
     }
 }

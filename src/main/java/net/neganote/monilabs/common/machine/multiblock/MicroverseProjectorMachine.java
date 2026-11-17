@@ -60,10 +60,7 @@ public class MicroverseProjectorMachine extends WorkableElectricMultiblockMachin
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
             MicroverseProjectorMachine.class, WorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
 
-    private final Item quantumFluxItem;
-
     private final Item universeDataItem;
-
     @Getter
     @Persisted
     private final Set<BlockPos> fluidBlockOffsets = new HashSet<>();
@@ -106,12 +103,13 @@ public class MicroverseProjectorMachine extends WorkableElectricMultiblockMachin
     public static final int MICROVERSE_MAX_INTEGRITY = 100_000;
     public static final int FLUX_REPAIR_AMOUNT = 1000;
 
-    private final GTRecipe quantumFluxRecipe;
     private final GTRecipe causalityCollapserRecipe;
     private final GTRecipe causalityShardRecipe;
     private final GTRecipe universeDataRecipe;
 
     private ItemStack targetItem;
+    private final static GTRecipe quantumFluxRecipe = GTRecipeBuilder.ofRaw().inputItems(MoniItems.QUANTUM_FLUX)
+            .buildRawRecipe();
 
     @Persisted
     private final NotifiableMicroverseContainer microverseContainer;
@@ -120,9 +118,7 @@ public class MicroverseProjectorMachine extends WorkableElectricMultiblockMachin
         super(holder, args);
         this.projectorTier = tier;
         this.microverseHandler = new ConditionalSubscriptionHandler(this, this::microverseTick, this::isFormed);
-        this.quantumFluxItem = ForgeRegistries.ITEMS.getValue(ResourceLocation.bySeparator("kubejs:quantum_flux", ':'));
-        assert this.quantumFluxItem != null;
-        this.quantumFluxRecipe = GTRecipeBuilder.ofRaw().inputItems(this.quantumFluxItem).buildRawRecipe();
+        updateMicroverse(0, false);
         this.microverseContainer = new NotifiableMicroverseContainer(this);
 
         updateMicroverse(0, false);
@@ -307,7 +303,7 @@ public class MicroverseProjectorMachine extends WorkableElectricMultiblockMachin
 
             if (fluxToConsume > 0) {
                 List<Ingredient> fluxList = ObjectArrayList
-                        .of(SizedIngredient.create(new ItemStack(quantumFluxItem, fluxToConsume)));
+                        .of(SizedIngredient.create(new ItemStack(MoniItems.QUANTUM_FLUX.get(), fluxToConsume)));
 
                 var scaledRecipe = quantumFluxRecipe.copy(new ContentModifier(fluxToConsume, 0.0));
 

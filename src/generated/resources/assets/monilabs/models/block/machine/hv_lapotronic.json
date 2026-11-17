@@ -1,0 +1,53 @@
+{
+  "parent": "minecraft:block/block",
+  "loader": "gtceu:machine",
+  "machine": "monilabs:hv_lapotronic",
+  "variants": {
+    "recipe_logic_status=idle": {
+      "model": {
+        "parent": "gtceu:block/machine/template/generator_machine",
+        "textures": {
+          "bottom": "gtceu:block/casings/voltage/hv/bottom",
+          "overlay_top": "monilabs:block/overlay/machine/lapotronic/overlay_top",
+          "side": "gtceu:block/casings/voltage/hv/side",
+          "top": "gtceu:block/casings/voltage/hv/top"
+        }
+      }
+    },
+    "recipe_logic_status=suspend": {
+      "model": {
+        "parent": "gtceu:block/machine/template/generator_machine",
+        "textures": {
+          "bottom": "gtceu:block/casings/voltage/hv/bottom",
+          "overlay_top": "monilabs:block/overlay/machine/lapotronic/overlay_top",
+          "side": "gtceu:block/casings/voltage/hv/side",
+          "top": "gtceu:block/casings/voltage/hv/top"
+        }
+      }
+    },
+    "recipe_logic_status=waiting": {
+      "model": {
+        "parent": "gtceu:block/machine/template/generator_machine",
+        "textures": {
+          "bottom": "gtceu:block/casings/voltage/hv/bottom",
+          "overlay_top": "monilabs:block/overlay/machine/lapotronic/overlay_top_active",
+          "overlay_top_emissive": "monilabs:block/overlay/machine/lapotronic/overlay_top_active_emissive",
+          "side": "gtceu:block/casings/voltage/hv/side",
+          "top": "gtceu:block/casings/voltage/hv/top"
+        }
+      }
+    },
+    "recipe_logic_status=working": {
+      "model": {
+        "parent": "gtceu:block/machine/template/generator_machine",
+        "textures": {
+          "bottom": "gtceu:block/casings/voltage/hv/bottom",
+          "overlay_top": "monilabs:block/overlay/machine/lapotronic/overlay_top_active",
+          "overlay_top_emissive": "monilabs:block/overlay/machine/lapotronic/overlay_top_active_emissive",
+          "side": "gtceu:block/casings/voltage/hv/side",
+          "top": "gtceu:block/casings/voltage/hv/top"
+        }
+      }
+    }
+  }
+}

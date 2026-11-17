@@ -1,3 +1,4 @@
-# Moni Labs 0.22.snapshot-i7
+# Moni Labs 0.24.5.insanity
 
-* Tweaks to Complex Microverses (Hostile, Abyssal, Supercharged)
+* Fix clouds showing through black hole render (thanks Jenya)
+* Fix creative multi logic not being properly team-aware
